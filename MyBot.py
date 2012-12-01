@@ -108,7 +108,7 @@ class Ant:
             if self.ants.unoccupied(self.destination) and not self.destination in self.bot.new_positions and not self.destination in self.bot.my_hills:
                 return True
             else:
-                random_direction++
+                random_direction = random_direction+1
 
     def move(self):
         self.last_position = self.position
