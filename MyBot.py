@@ -6,7 +6,7 @@ import random
 # it will also run the do_turn method for us
 class MyBot:
     def __init__(self):
-        self.logging = False
+        self.logging = True
         
         
     def log_line(self, s):
@@ -29,7 +29,6 @@ class MyBot:
 
     def do_turn(self, ants):
         self.log_line("NEW TURN ---------------------------------:" + str(len(ants.my_ants())) + " - " + str(len(self.my_ants)))
-        self.print_map(ants)
         self.new_positions = []
         #update my_ants
         for position in ants.my_ants():
@@ -37,13 +36,9 @@ class MyBot:
             if not position in ants_i_already_have:
                 self.my_ants.append(Ant(ants, position, self))
                 self.log_line("Ant added")
+                
         for ant in self.my_ants:
             ant.update()
-    
-    def print_map(self, ants):
-        with open("log.txt", "a") as log:
-            log.write(str(ants.map))
-            log.write("\n\n")
     
 class Ant:
     def __init__(self, ants, pos, bot):
@@ -61,18 +56,20 @@ class Ant:
         try:
             self.bot.destinations.remove(self.destination)
         except Exception, e:
-            self.bot.log_line("Update")
+            self.bot.log_line(str(e))
 
         self.destination = None
         self.distance_to_destination = None
         self.state = None
     
 
-    def update(self):
+    def update(self):            
         self.bot.log_line("Update:")
         if self.position == self.last_position: 
             self.bot.log_line("SAME POSITION")
             self.clear_state()
+            self.move_random()
+            
         if self.destination == self.position:
             self.bot.log_line("\tReached destination")
             self.destination = None
@@ -125,7 +122,6 @@ class Ant:
                 return
         
             self.bot.log_line("\t\tDirection failed")
-        
         
     def search_for_food(self):
         food_list = []

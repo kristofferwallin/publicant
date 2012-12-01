@@ -1,0 +1,1 @@
+web: ./connectAndPlay.sh
