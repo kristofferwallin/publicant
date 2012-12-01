@@ -6,7 +6,7 @@ import random
 # it will also run the do_turn method for us
 class MyBot:
     def __init__(self):
-        self.logging = True
+        self.logging = False
         
         
     def log_line(self, s):
@@ -16,16 +16,20 @@ class MyBot:
                 log.write("\n")
         
     def do_setup(self, ants):
+        with open("log.txt", "w") as log:
+            log.write(" ")
         self.ants = ants
         self.my_ants = []
         self.destinations = []
-        self.my_hills = ants.my_hills()        
+        self.unseen = []
+        self.my_hills = ants.my_hills()
         for position in ants.my_ants():
             self.my_ants.append(Ant(ants, position, self))
-        
+    
 
     def do_turn(self, ants):
         self.log_line("NEW TURN ---------------------------------:" + str(len(ants.my_ants())) + " - " + str(len(self.my_ants)))
+        self.print_map(ants)
         self.new_positions = []
         #update my_ants
         for position in ants.my_ants():
@@ -36,6 +40,10 @@ class MyBot:
         for ant in self.my_ants:
             ant.update()
     
+    def print_map(self, ants):
+        with open("log.txt", "a") as log:
+            log.write(str(ants.map))
+            log.write("\n\n")
     
 class Ant:
     def __init__(self, ants, pos, bot):
@@ -47,6 +55,7 @@ class Ant:
         self.destination = None
         self.distance_to_destination = None
         self.state = None
+        self.last_position = None
 
     def clear_state(self):
         try:
@@ -61,8 +70,10 @@ class Ant:
 
     def update(self):
         self.bot.log_line("Update:")
-        
-        if self.destination == self.position and not self.state == "Guarding":
+        if self.position == self.last_position: 
+            self.bot.log_line("SAME POSITION")
+            self.clear_state()
+        if self.destination == self.position:
             self.bot.log_line("\tReached destination")
             self.destination = None
         
@@ -70,12 +81,10 @@ class Ant:
             if not self.destination in self.ants.food():
                 self.bot.log_line("\tFood gone, clear state")
                 self.clear_state()
-        
-            
+                
         if not self.destination:
             self.bot.log_line("\tNo Destination, calculate new order")
             if self.move_to_food(): self.state = "Moving to food"
-                
             else:
                 self.move_random() 
                 self.state = "Moving random"
@@ -90,27 +99,31 @@ class Ant:
             return True
         self.bot.log_line("move_to_food:false")
         return False
-    
+
     def move_random(self):
         self.bot.log_line("move_random")
         directions = {0:'n',1:'e',2:'s',3:'w'}
         random_direction = random.randint(0,3)
         self.bot.log_line(str(random_direction))
         self.destination = self.ants.destination(self.position, directions[random_direction])
-        return True    
+        if self.ants.unoccupied(self.destination) and not self.destination in self.bot.new_positions and not self.destination in self.bot.my_hills:
+            return True
+        else:
+            self.move_random()
 
     def move(self):
+        self.last_position = self.position
         direction_to_move = None
         self.bot.log_line("\tMove:")
         for direction in self.ants.direction(self.position, self.destination):
             self.new_position = self.ants.destination(self.position, direction)
-                        
             if self.ants.unoccupied(self.new_position) and not self.new_position in self.bot.new_positions and not self.new_position in self.bot.my_hills:
                 self.bot.log_line("\t\tDirection ok.")
                 self.bot.new_positions.append(self.new_position)
                 self.ants.issue_order((self.position, direction))
                 self.position = self.new_position
                 return
+        
             self.bot.log_line("\t\tDirection failed")
         
         
@@ -132,11 +145,6 @@ class Ant:
 
     def execute(self):
         if self.order == "move": self.move()
-        
-
-    def explore(self):
-        pass
-    
 
     def calculate_path_to_position(self, target, force=False):
         pass
