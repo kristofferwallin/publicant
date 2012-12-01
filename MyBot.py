@@ -100,13 +100,15 @@ class Ant:
     def move_random(self):
         self.bot.log_line("move_random")
         directions = {0:'n',1:'e',2:'s',3:'w'}
-        random_direction = random.randint(0,3)
-        self.bot.log_line(str(random_direction))
-        self.destination = self.ants.destination(self.position, directions[random_direction])
-        if self.ants.unoccupied(self.destination) and not self.destination in self.bot.new_positions and not self.destination in self.bot.my_hills:
-            return True
-        else:
-            self.move_random()
+        #random_direction = random.randint(0,3)
+        random_direction = 0
+        while random_direction < 4:
+            self.bot.log_line(str(random_direction))
+            self.destination = self.ants.destination(self.position, directions[random_direction])
+            if self.ants.unoccupied(self.destination) and not self.destination in self.bot.new_positions and not self.destination in self.bot.my_hills:
+                return True
+            else:
+                random_direction++
 
     def move(self):
         self.last_position = self.position
